@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>{% block title %}Digital Agriculture Advisory System for Crop Selection{% endblock %}</title>
+    <meta
+      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
+      name="viewport"
+    />
+    <link href="{{ url_for('static', filename='assets/img/logo2.png') }}" rel="icon">
+
+    <!-- Fonts and icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLKOlqYUgIfQWso1Oe/8+YjP/oScI2vJ2wBo+e2gJvGQJiUe8Sm0Ox9au6w/3bInTAtHzpZHOX" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="{{ url_for('static', filename='dashboard/assets/js/plugin/webfont/webfont.min.js') }}"></script>
+    <script>
+      WebFont.load({
+        google: { families: ["Public Sans:300,400,500,600,700"] },
+        custom: {
+          families: [
+            "Font Awesome 5 Solid",
+            "Font Awesome 5 Regular",
+            "Font Awesome 5 Brands",
+            "simple-line-icons",
+          ],
+          urls: ["{{ url_for('static', filename='dashboard/assets/css/fonts.min.css') }}"],
+        },
+        active: function () {
+          sessionStorage.fonts = true;
+        },
+      });
+    </script>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/assets/css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/assets/css/plugins.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/assets/css/kaiadmin.min.css') }}" />
+
+    <!-- CSS Just for demo purpose, don't include it in your project -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/assets/css/demo.css') }}" />
+    
+    <style>
+      .breadcrumb {
+        font-size: 14px;
+      }
+      .sidebar-divider {
+        height: 1px;
+        background-color: rgba(255, 255, 255, 0.1);
+        margin: 15px 0;
+      }
+      
+      .btn-success {
+        background-color: #2d5016 !important;
+        border-color: #2d5016 !important;
+      }
+      
+      .btn-success:hover {
+        background-color: #3a6b1f !important;
+        border-color: #3a6b1f !important;
+      }
+      
+      .btn-outline-success {
+        color: #2d5016 !important;
+        border-color: #2d5016 !important;
+      }
+      
+      .btn-outline-success:hover {
+        background-color: #2d5016 !important;
+        color: #ffffff !important;
+      }
+      
+      .text-success {
+        color: #4a7c2e !important;
+      }
+      
+      .bg-success {
+        background-color: #4a7c2e !important;
+      }
+      
+      .badge.bg-success {
+        background-color: #4a7c2e !important;
+      }
+      
+      .nav-section {
+        padding: 10px 15px 5px 15px;
+      }
+      
+      .sidebar-section-title {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      
+      .nav-secondary .nav-item .nav-link {
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+      
+      .nav-secondary .nav-item .nav-link:hover {
+        color: #fff;
+        background-color: rgba(74, 124, 46, 0.3);
+      }
+      
+      .nav-secondary .nav-item.active .nav-link {
+        color: #4a7c2e;
+        background-color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+      }
+      
+      .nav-secondary .nav-item .nav-link i {
+        margin-right: 10px;
+        width: 20px;
+        text-align: center;
+      }
+      
+      /* Green sidebar background */
+      .sidebar {
+        background-color: #2d5016 !important;
+      }
+      
+      .sidebar .sidebar-logo .logo-header {
+        background-color: #2d5016 !important;
+      }
+      
+      .sidebar .sidebar-wrapper {
+        background-color: #2d5016 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <!-- Sidebar -->
+      <div class="sidebar" data-background-color="dark">
+        <div class="sidebar-logo">
+          <!-- Logo Header -->
+          <div class="logo-header" data-background-color="dark">
+            <a href="{{ url_for('dashboard') }}" class="logo">
+             
+              <a href="" class="logo d-flex align-items-center">
+              <i class="bi bi-flower1 me-2" style="color: #28a745; font-size: 1.5rem;"></i>
+              <span class="sitename" style="color: #ffffff;font-size:2em; ">Digital<span style="color: #28a745;">Agri</span></span>
+              
+            </a>
+            </a>
+
+            <div class="nav-toggle">
+              <button class="btn btn-toggle toggle-sidebar">
+                <i class="gg-menu-right"></i>
+              </button>
+              <button class="btn btn-toggle sidenav-toggler">
+                <i class="gg-menu-left"></i>
+              </button>
+            </div>
+            <button class="topbar-toggler more">
+              <i class="gg-more-vertical-alt"></i>
+            </button>
+          </div>
+          <!-- End Logo Header -->
+        </div>
+        <div class="sidebar-wrapper scrollbar scrollbar-inner">
+          <div class="sidebar-content">
+            <ul class="nav nav-secondary">
+              <li class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <a href="{{ url_for('dashboard') }}">
+                  <i class="fas fa-home"></i>
+                  <p>Dashboard</p>
+                </a>
+              </li>
+              <li class="nav-item {% if request.endpoint == 'recommendation_page' %}active{% endif %}">
+                <a href="{{ url_for('recommendation_page') }}">
+                  <i class="fas fa-seedling"></i>
+                  <p>Get recommendations</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="#">
+                  <i class="fas fa-leaf"></i>
+                  <p>Get Crop Advice</p>
+                </a>
+              </li>
+              <li class="nav-item {% if request.endpoint == 'history_page' %}active{% endif %}">
+                <a href="{{ url_for('history_page') }}">
+                  <i class="fas fa-history"></i>
+                  <p>My History</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="#">
+                  <i class="fas fa-user-tie"></i>
+                  <p>My Farm Profile</p>
+                </a>
+              </li>
+            </ul>
+            
+            <div class="sidebar-divider"></div>
+            
+            <ul class="nav nav-secondary">
+              <li class="nav-section">
+                <span class="sidebar-section-title">Information</span>
+              </li>
+              <li class="nav-item">
+                <a href="#">
+                  <i class="fas fa-calendar-alt"></i>
+                  <p>Planting Calendar</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="#">
+                  <i class="fas fa-cloud"></i>
+                  <p>Weather Forecast</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="#">
+                  <i class="fas fa-cog"></i>
+                  <p>Account Settings</p>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!-- End Sidebar -->
+
+      <div class="main-panel">
+        <div class="main-header">
+          <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center py-3">
+              <!-- Left side - Breadcrumb -->
+              <div class="breadcrumb">
+                <span class="text-muted">Home</span>
+                <span class="mx-2 text-muted">/</span>
+                <span class="text-dark fw-bold">{% block breadcrumb %}Dashboard{% endblock %}</span>
+              </div>
+              
+              <!-- Right side - Actions -->
+              <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-success btn-sm">
+                  <i class="fas fa-bell me-1"></i> Alerts
+                </button>
+                <button class="btn btn-outline-success btn-sm">
+                  <i class="fas fa-question-circle me-1"></i> Help
+                </button>
+                <div class="dropdown">
+                  <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-user-circle me-2"></i>{{ current_user.name if current_user.name else 'User' }}
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">My Profile</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Log out</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% block content %}{% endblock %}
+
+        <footer class="footer">
+          <div class="container-fluid d-flex justify-content-between">
+            <nav class="pull-left">
+              <ul class="nav">
+
+                <li class="nav-item">
+                  
+                </li>
+              </ul>
+            </nav>
+            <div class="copyright">
+               © Copyright <i class="fa fa-heart heart text-success"></i>
+              <strong><span> DigitalAgri </span></strong>.All Rights Reserved 2026
+            </div>
+            <div>
+              Distributed by
+              <a target="_blank" href="https://www.fluxify.rw/" class="text-success">Fluxify Ltd</a>.
+            </div>
+          </div>
+        </footer>
+
+      </div>
+    </div>
+    <!--   Core JS Files   -->
+    <script src="{{ url_for('static', filename='dashboard/assets/js/core/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='dashboard/assets/js/core/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='dashboard/assets/js/core/bootstrap.min.js') }}"></script>
+
+    <!-- jQuery Scrollbar -->
+    <script src="{{ url_for('static', filename='dashboard/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>
+
+    <!-- Chart JS -->
+    <script src="{{ url_for('static', filename='dashboard/assets/js/plugin/chart.js/chart.min.js') }}"></script>
+
+    <!-- jQuery Sparkline -->
+    <script src="{{ url_for('static', filename='dashboard/assets/js/plugin/jquery.sparkline/jquery.sparkline.min.js') }}"></script>
+
+    <!-- Chart Circle -->
+    <script src="{{ url_for('static', filename='dashboard/assets/js/plugin/chart-circle/circles.min.js') }}"></script>
+
+    <!-- Datatables -->
+    <script src="{{ url_for('static', filename='dashboard/assets/js/plugin/datatables/datatables.min.js') }}"></script>
+
+    <!-- Bootstrap Notify -->
+    <script src="{{ url_for('static', filename='dashboard/assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
+
+    <!-- jQuery Vector Maps -->
+    <script src="{{ url_for('static', filename='dashboard/assets/js/plugin/jsvectormap/jsvectormap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='dashboard/assets/js/plugin/jsvectormap/world.js') }}"></script>
+
+    <!-- Sweet Alert -->
+    <script src="{{ url_for('static', filename='dashboard/assets/js/plugin/sweetalert/sweetalert.min.js') }}"></script>
+
+    <!-- Kaiadmin JS -->
+    <script src="{{ url_for('static', filename='dashboard/assets/js/kaiadmin.min.js') }}"></script>
+    
+    <script>
+      function confirmDelete(event) {
+        event.preventDefault();
+        const form = event.target;
+        
+        swal({
+          title: "Are you sure?",
+          text: "Once deleted, you will not be able to recover this recommendation log!",
+          icon: "warning",
+          buttons: {
+            cancel: {
+              visible: true,
+              text: "Cancel",
+              className: "btn btn-danger",
+            },
+            confirm: {
+              text: "Yes, delete it!",
+              className: "btn btn-success",
+            },
+          },
+          dangerMode: true,
+        }).then((willDelete) => {
+          if (willDelete) {
+            form.submit();
+          }
+        });
+        return false;
+      }
+    </script>
+  </body>
+</html>

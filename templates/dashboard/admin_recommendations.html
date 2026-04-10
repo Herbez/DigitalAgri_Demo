@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>{% block title %}Recommendations - Digital Agriculture Advisory System{% endblock %}</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+    <link rel="icon" href="{{ url_for('static', filename='dashboard/assets/img/kaiadmin/favicon.ico') }}" type="image/x-icon" />
+
+    <!-- Fonts and icons -->
+    <script src="{{ url_for('static', filename='dashboard/assets/js/plugin/webfont/webfont.min.js') }}"></script>
+    <script>
+      WebFont.load({
+        google: { families: ["Public Sans:300,400,500,600,700"] },
+        custom: {
+          families: ["Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands", "simple-line-icons"],
+          urls: ["{{ url_for('static', filename='dashboard/assets/css/fonts.min.css') }}"]
+        },
+        active: function () { sessionStorage.fonts = true; }
+      });
+    </script>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/assets/css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/assets/css/plugins.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/assets/css/kaiadmin.min.css') }}" />
+  </head>
+  <body>
+    <div class="wrapper">
+      <!-- Sidebar -->
+      <div class="sidebar" data-background-color="dark">
+        <div class="sidebar-logo">
+          <div class="logo-header" data-background-color="dark">
+            <a href="{{ url_for('admin_dashboard') }}" class="logo d-flex align-items-center">
+              <i class="bi bi-flower1 me-2" style="color: #28a745; font-size: 1.5rem;"></i>
+              <span class="sitename" style="color: #ffffff; font-size: 2em;">Digital<span style="color: #28a745;">Agri</span></span>
+            </a>
+            <div class="nav-toggle">
+              <button class="btn btn-toggle toggle-sidebar"><i class="gg-menu-right"></i></button>
+              <button class="btn btn-toggle sidenav-toggler"><i class="gg-menu-left"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="sidebar-wrapper scrollbar scrollbar-inner">
+          <div class="sidebar-content">
+            <ul class="nav nav-secondary">
+              <li class="nav-item">
+                <a href="{{ url_for('admin_dashboard') }}">
+                  <i class="fas fa-home"></i>
+                  <p>Dashboard</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="{{ url_for('admin_users') }}">
+                  <i class="fas fa-users"></i>
+                  <p>Manage Users</p>
+                </a>
+              </li>
+              <li class="nav-item active">
+                <a href="{{ url_for('admin_recommendations') }}">
+                  <i class="fas fa-history"></i>
+                  <p>Recommendations</p>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <div class="main-header">
+          <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+            <div class="container-fluid">
+              <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+                <li class="nav-item dropdown hidden-caret">
+                  <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+                    <span class="profile-username">
+                      <span class="op-7">Hi,</span>
+                      <span class="fw-bold">{{ current_user.name }}</span>
+                    </span>
+                  </a>
+                  <ul class="dropdown-menu dropdown-user animated fadeIn">
+                    <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+
+        <div class="container">
+          <div class="page-inner">
+            <div class="page-header">
+              <h3 class="fw-bold mb-3">Recommendation Logs</h3>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card card-round">
+                  <div class="card-header">
+                    <div class="card-title">All System Recommendations</div>
+                  </div>
+                  <div class="card-body p-0">
+                    <div class="table-responsive">
+                      <table class="table align-items-center mb-0">
+                        <thead class="thead-light">
+                          <tr>
+                            <th>User</th>
+                            <th>District</th>
+                            <th>Soil pH</th>
+                            <th>Rainfall</th>
+                            <th>Temp</th>
+                            <th>Crop</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for rec in recommendations.items %}
+                          <tr>
+                            <td>{{ rec.user.name }}</td>
+                            <td>{{ rec.district }}</td>
+                            <td>{{ "%.2f"|format(rec.soil_ph) if rec.soil_ph else 'N/A' }}</td>
+                            <td>{{ "%.1f"|format(rec.rainfall) if rec.rainfall else 'N/A' }} mm</td>
+                            <td>{{ "%.1f"|format(rec.temperature) if rec.temperature else 'N/A' }} °C</td>
+                            <td>
+                              <span class="badge badge-success">
+                                {{ rec.recommended_crops.replace('_', ' ').title() }}
+                              </span>
+                            </td>
+                            <td>{{ rec.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                              <form action="{{ url_for('delete_recommendation', rec_id=rec.id) }}" method="POST" style="display:inline;" onsubmit="return confirmDelete(event);">
+                                <button type="submit" class="btn btn-icon btn-link btn-danger" title="Delete Log">
+                                  <i class="fa fa-trash"></i>
+                                </button>
+                              </form>
+                            </td>
+                          </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div class="card-footer">
+                    <nav aria-label="Page navigation">
+                      <ul class="pagination justify-content-center">
+                        {% for page_num in recommendations.iter_pages() %}
+                          {% if page_num %}
+                            <li class="page-item {{ 'active' if page_num == recommendations.page else '' }}">
+                              <a class="page-link" href="{{ url_for('admin_recommendations', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                          {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                          {% endif %}
+                        {% endfor %}
+                      </ul>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Core JS Files -->
+    <script src="{{ url_for('static', filename='dashboard/assets/js/core/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='dashboard/assets/js/core/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='dashboard/assets/js/core/bootstrap.min.js') }}"></script>
+    
+    <!-- Sweet Alert -->
+    <script src="{{ url_for('static', filename='dashboard/assets/js/plugin/sweetalert/sweetalert.min.js') }}"></script>
+    
+    <script src="{{ url_for('static', filename='dashboard/assets/js/kaiadmin.min.js') }}"></script>
+    
+    <script>
+      function confirmDelete(event) {
+        event.preventDefault();
+        const form = event.target;
+        
+        swal({
+          title: "Are you sure?",
+          text: "Once deleted, you will not be able to recover this recommendation log!",
+          icon: "warning",
+          buttons: {
+            cancel: {
+              visible: true,
+              text: "Cancel",
+              className: "btn btn-danger",
+            },
+            confirm: {
+              text: "Yes, delete it!",
+              className: "btn btn-success",
+            },
+          },
+          dangerMode: true,
+        }).then((willDelete) => {
+          if (willDelete) {
+            form.submit();
+          }
+        });
+        return false;
+      }
+    </script>
+  </body>
+</html>

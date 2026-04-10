@@ -1,0 +1,201 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}My Farm Dashboard - Digital Agriculture Advisory System{% endblock %}
+
+{% block breadcrumb %}My Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  
+  <div class="page-inner">
+    <!-- Dashboard Header -->
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <h2 class="fw-bold text-dark">My Farm Dashboard</h2>
+        <p class="text-muted mb-0">
+          Welcome, {{ current_user.name if current_user.name else 'Farmer' }} — Season A 2026 is active. 
+      
+        </p>
+      </div>
+      
+    </div> 
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+              <div class="icon-box bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                <i class="fas fa-chart-line text-success fs-4"></i>
+              </div>
+              <div>
+                <h6 class="text-muted mb-0">TOTAL RECOMMENDATIONS</h6>
+                <h3 class="fw-bold text-dark mb-0">{{ recommendations|length if recommendations else 0 }}</h3>
+              </div>
+            </div>
+            <p class="text-muted small mb-0">Across 3 seasons</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+              <div class="icon-box bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                <i class="fas fa-seedling text-success fs-4"></i>
+              </div>
+              <div>
+                <h6 class="text-muted mb-0">BEST CROP THIS SEASON</h6>
+                <h3 class="fw-bold text-dark mb-0">
+                  {% if recommendations %}
+                    {{ recommendations[0].recommended_crops.replace('_', ' ').title() if recommendations[0].recommended_crops else 'N/A' }}
+                  {% else %}
+                    N/A
+                  {% endif %}
+                </h3>
+              </div>
+            </div>
+            <p class="text-muted small mb-0">
+              {% if recommendations and recommendations[0].confidence_score %}
+                {{ "%.0f%%"|format(recommendations[0].confidence_score * 100) }} suitability match
+              {% else %}
+                No data available
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+              <div class="icon-box bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                <i class="fas fa-cloud text-success fs-4"></i>
+              </div>
+              <div>
+                <h6 class="text-muted mb-0">RAINFALL (MM) THIS MONTH</h6>
+                <h3 class="fw-bold text-dark mb-0">82mm</h3>
+              </div>
+            </div>
+            <p class="text-muted small mb-0">Good for planting</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+              <div class="icon-box bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                <i class="fas fa-calendar-check text-success fs-4"></i>
+              </div>
+              <div>
+                <h6 class="text-muted mb-0">OPTIMAL PLANTING WINDOW</h6>
+                <h3 class="fw-bold text-dark mb-0">Mar 20</h3>
+              </div>
+            </div>
+            <p class="text-muted small mb-0">Starts in 1 day</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendation History Table -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white border-0">
+            <h5 class="card-title text-dark mb-0">Recommendation History</h5>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table align-items-center mb-0">
+                <thead class="thead-light">
+                  <tr>
+                    <th>Date</th>
+                    <th>Soil pH</th>
+                    <th>Rainfall</th>
+                    <th>Temp</th>
+                    <th>Recommended Crop</th>
+                    <th>Confidence</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if recommendations %}
+                    {% for rec in recommendations %}
+                      <tr>
+                        <td>{{ rec.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ "%.2f"|format(rec.soil_ph) if rec.soil_ph else 'N/A' }}</td>
+                        <td>{{ "%.1f"|format(rec.rainfall) if rec.rainfall else 'N/A' }} mm</td>
+                        <td>{{ "%.1f"|format(rec.temperature) if rec.temperature else 'N/A' }} °C</td>
+                        <td>
+                          <span class="badge bg-success">
+                            {{ rec.recommended_crops.replace('_', ' ').title() }}
+                          </span>
+                        </td>
+                        <td>{{ "%.1f%%"|format(rec.confidence_score * 100) if rec.confidence_score else 'N/A' }}</td>
+                        <td>
+                          <form action="{{ url_for('delete_own_recommendation', rec_id=rec.id) }}" method="POST" style="display:inline;" onsubmit="return confirmDelete(event);">
+                            <button type="submit" class="btn btn-icon btn-link btn-danger" title="Delete Log">
+                              <i class="fa fa-trash"></i>
+                            </button>
+                          </form>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="6" class="text-center text-muted">No recommendations yet.</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>       
+</div>
+
+<style>
+  .breadcrumb {
+    font-size: 14px;
+  }
+  
+  .icon-box {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .icon-box .text-success {
+    color: #ffffff !important;
+  }
+  
+  .card {
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .card:hover {
+    transform: translateY(-2px);
+  }
+ 
+</style>
+{% endblock %}
