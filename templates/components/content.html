@@ -1,0 +1,139 @@
+<!-- CONTENT -->
+<div class="content">
+
+    <!-- Page header -->
+    <div class="page-header">
+      <h1 class="page-title">My Farm Dashboard</h1>
+      <div class="page-sub">
+        Welcome back, {{ user.full_name.split()[0] }} —
+        <span class="season-badge"><span class="season-dot"></span>Season A 2026 active</span>
+      </div>
+    </div>
+
+    <!-- AI Insight Banner -->
+    <div class="insight-card">
+      <div class="insight-header">
+        <div class="insight-icon">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.7" stroke-linecap="round"><path d="M10 2l1.6 4.9H17l-4.2 3.1 1.6 4.9L10 12l-4.4 2.9 1.6-4.9L3 6.9h5.4L10 2z"/></svg>
+        </div>
+        <div>
+          <div class="insight-label">AI Recommendation</div>
+          <div class="insight-title">Plant {{ predicted_crop_label }} this season for optimal yield</div>
+        </div>
+      </div>
+      <p class="insight-text">Based on your soil profile (pH {{ "%.1f"|format(current_inputs.soil_ph) }}), {{ user.district }} district climate data, and this season's rainfall forecast of {{ "%.0f"|format(current_inputs.annual_rainfall_mm) }}mm — {{ predicted_crop_label }} has a {{ "%.0f"|format(confidence) }}% suitability score. {{ source_label }}.</p>
+      <div class="insight-chips">
+        <div class="chip">🌱 Planting window: Mar 18–25</div>
+        <div class="chip">💧 Irrigation: low need</div>
+        <div class="chip">🌡️ Temp: optimal</div>
+        <div class="chip">📈 Est. yield: 18t/ha</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card c-green">
+        <div class="stat-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="stat-label">Total Recommendations</div>
+        <div class="stat-value" id="stat1">{{ total_recommendations }}</div>
+        <div class="stat-note">Across all seasons</div>
+      </div>
+      <div class="stat-card c-blue">
+        <div class="stat-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="stat-label">Best Crop This Season</div>
+        <div class="stat-value" style="font-size:20px;padding-top:4px">{{ best_crop_label }}</div>
+        <div class="stat-note">{{ "%.1f"|format(best_crop_score) }}% suitability match</div>
+      </div>
+      <div class="stat-card c-amber">
+        <div class="stat-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2c0 0-8 7.2-8 13a8 8 0 0016 0c0-5.8-8-13-8-13z"/></svg>
+        </div>
+        <div class="stat-label">Monthly Rainfall</div>
+        <div class="stat-value" id="stat3">{{ "%.1f"|format(monthly_rainfall) }}<span style="font-size:16px;font-weight:500">mm</span></div>
+        <div class="stat-note">Based on district data</div>
+      </div>
+      <div class="stat-card c-violet">
+        <div class="stat-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="stat-label">Optimal Planting Window</div>
+        <div class="stat-value" style="font-size:20px;padding-top:4px">Mar 20</div>
+        <div class="stat-note">Starts in 1 day</div>
+      </div>
+    </div>
+
+    <!-- Alerts Row -->
+    <div class="alerts-row">
+      {% for alert in alerts %}
+      <div class="alert-item">
+        <div class="alert-dot-wrap" style="background:{% if alert.variant == 'success' %}#ECFDF5{% elif alert.variant == 'warning' %}#FFFBEB{% else %}#EFF6FF{% endif %}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{% if alert.variant == 'success' %}#059669{% elif alert.variant == 'warning' %}#D97706{% else %}#3B82F6{% endif %}" stroke-width="2" stroke-linecap="round">
+            {% if alert.variant == 'success' %}<polyline points="20 6 9 17 4 12"/>
+            {% elif alert.variant == 'warning' %}<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1"/>
+            {% else %}<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1"/>{% endif %}
+          </svg>
+        </div>
+        <div class="alert-content">
+          <div class="alert-title">{{ alert.title }}</div>
+          <div class="alert-desc">{{ alert.description }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Environmental Trends</div>
+            <div class="chart-sub">Rainfall, temperature & humidity over time</div>
+          </div>
+          <div class="chart-pills">
+            <button class="pill active" onclick="setPeriod(this,'3m')">3M</button>
+            <button class="pill" onclick="setPeriod(this,'6m')">6M</button>
+            <button class="pill" onclick="setPeriod(this,'1y')">1Y</button>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="envChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Crop Confidence Scores</div>
+            <div class="chart-sub">AI suitability this season</div>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:180px"><canvas id="pieChart"></canvas></div>
+        <div class="pie-legend" id="pieLegend"></div>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="bottom-grid">
+      
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Crop Suitability Index</div>
+            <div class="chart-sub">Season A 2026 — all analyzed crops</div>
+          </div>
+        </div>
+        <table class="crop-table">
+          <thead>
+            <tr>
+              <th>Crop</th>
+              <th>Score</th>
+              <th>Suitability</th>
+            </tr>
+          </thead>
+          <tbody id="cropTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>

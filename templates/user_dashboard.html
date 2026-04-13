@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DigitalAgri — My Farm Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Lora:wght@500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+{% include 'components/sidebar.html' %}
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+{% include 'components/navbar.html' %}
+
+  <!-- CONTENT -->
+  <div class="content">
+    {% include 'components/content.html' %}
+  </div>
+</div>
+</div>
+
+<script>
+/* ── THEME ── */
+function toggleTheme(){
+  const h=document.documentElement;
+  const dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dark?'light':'dark');
+  document.getElementById('themeBtn').textContent=dark?'☀️':'🌙';
+  updateCharts();
+}
+
+/* ── COUNTER ANIMATION ── */
+function animateCount(id,target,suffix=''){
+  const el=document.getElementById(id);
+  if(!el)return;
+  let start=0,dur=1200,startTime=null;
+  function step(ts){
+    if(!startTime)startTime=ts;
+    const progress=Math.min((ts-startTime)/dur,1);
+    const ease=1-Math.pow(1-progress,3);
+    const val=Math.round(ease*target);
+    el.innerHTML=val+(suffix?`<span style="font-size:16px;font-weight:500">${suffix}</span>`:'');
+    if(progress<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+setTimeout(()=>{
+  animateCount('stat1',{{ total_recommendations }});
+  animateCount('stat3',{{ monthly_rainfall | round(1) }});
+},400);
+
+/* ── CHART HELPERS ── */
+function getCSSVar(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+
+function chartColors(){
+  return{
+    text:getCSSVar('--text-primary'),
+    muted:getCSSVar('--text-muted'),
+    border:getCSSVar('--border'),
+    surface:getCSSVar('--surface'),
+    green:['#22884F','#2BA563','#4FBF80','#A8DFBF'],
+    multi:['#22884F','#3B82F6','#F59E0B','#8B5CF6','#14B8A6','#F43F5E'],
+  };
+}
+
+/* ── ENV CHART (area gradient) ── */
+let envChart,pieChart,lineChart;
+
+const envData = {
+  '3m': {
+    labels: {{ environment_series.labels | tojson }},
+    rainfall: {{ environment_series.rainfall | tojson }},
+    temp: {{ environment_series.temperature | tojson }},
+    humidity: {{ environment_series.humidity | tojson }},
+  }
+};
+
+function buildEnvChart(period='3m'){
+  const c=chartColors();
+  const d=envData[period];
+  const ctx=document.getElementById('envChart');
+  if(!ctx)return;
+
+  const makeGrad=(ctx2,c1,c2)=>{
+    const g=ctx2.createLinearGradient(0,0,0,220);
+    g.addColorStop(0,c1);g.addColorStop(1,c2);return g;
+  };
+
+  if(envChart){envChart.destroy();}
+  envChart=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:d.labels,
+      datasets:[
+        {
+          label:'Rainfall (mm)',
+          data:d.rainfall,yAxisID:'y',
+          borderColor:'#2BA563',borderWidth:2.5,
+          backgroundColor:function(ctx2){return makeGrad(ctx2.chart.ctx,'rgba(43,165,99,0.25)','rgba(43,165,99,0.01)')},
+          fill:true,tension:0.45,pointRadius:4,pointHoverRadius:7,
+          pointBackgroundColor:'#22884F',pointBorderColor:'#fff',pointBorderWidth:2,
+        },
+        {
+          label:'Temperature (°C)',
+          data:d.temp,yAxisID:'y1',
+          borderColor:'#F59E0B',borderWidth:2,borderDash:[5,4],
+          backgroundColor:'transparent',fill:false,tension:0.45,
+          pointRadius:3,pointHoverRadius:6,pointBackgroundColor:'#F59E0B',pointBorderColor:'#fff',pointBorderWidth:2,
+        },
+        {
+          label:'Humidity (%)',
+          data:d.humidity,yAxisID:'y1',
+          borderColor:'#3B82F6',borderWidth:2,borderDash:[3,3],
+          backgroundColor:'transparent',fill:false,tension:0.45,
+          pointRadius:3,pointHoverRadius:6,pointBackgroundColor:'#3B82F6',pointBorderColor:'#fff',pointBorderWidth:2,
+        },
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      animation:{duration:700,easing:'easeInOutQuart'},
+      interaction:{intersect:false,mode:'index'},
+      plugins:{
+        legend:{display:true,position:'bottom',labels:{boxWidth:12,boxHeight:3,padding:16,font:{size:11.5,family:'Plus Jakarta Sans'},color:c.muted,usePointStyle:false}},
+        tooltip:{backgroundColor:'rgba(15,36,25,0.9)',titleColor:'#fff',bodyColor:'rgba(255,255,255,0.75)',padding:12,cornerRadius:10,boxPadding:4,titleFont:{size:12,family:'Plus Jakarta Sans'},bodyFont:{size:12,family:'Plus Jakarta Sans'}},
+      },
+      scales:{
+        x:{grid:{color:c.border,lineWidth:0.5},border:{dash:[3,3]},ticks:{color:c.muted,font:{size:11.5,family:'Plus Jakarta Sans'}}},
+        y:{position:'left',grid:{color:c.border,lineWidth:0.5},border:{display:false,dash:[3,3]},ticks:{color:c.muted,font:{size:11.5},callback:v=>v+'mm'},title:{display:false}},
+        y1:{position:'right',grid:{display:false},border:{display:false},ticks:{color:c.muted,font:{size:11.5},callback:v=>v}},
+      }
+    }
+  });
+}
+
+function setPeriod(btn,period){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  buildEnvChart(period);
+}
+
+/* ── PIE CHART ── */
+const cropScores = {{ score_cards | tojson }};
+
+function buildPieChart(){
+  const ctx=document.getElementById('pieChart');
+  if(!ctx)return;
+  if(pieChart)pieChart.destroy();
+  pieChart=new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:cropScores.map(c=>c.label),
+      datasets:[{
+        data:cropScores.map(c=>c.score),
+        backgroundColor:cropScores.map(c=>c.color),
+        borderWidth:0,hoverOffset:6,
+        borderRadius:4,spacing:3,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      cutout:'65%',
+      animation:{duration:900,easing:'easeInOutQuart'},
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:'rgba(15,36,25,0.9)',titleColor:'#fff',bodyColor:'rgba(255,255,255,0.75)',padding:12,cornerRadius:10,callbacks:{label:ctx=>' '+ctx.parsed+'% match'}},
+      }
+    }
+  });
+
+  const legend=document.getElementById('pieLegend');
+  legend.innerHTML='';
+  cropScores.forEach(c=>{
+    legend.innerHTML+=`<div class="legend-item">
+      <div class="legend-left"><div class="legend-dot" style="background:${c.color}"></div>${c.label}</div>
+      <div class="legend-pct">${c.score}%</div>
+    </div>`;
+  });
+}
+
+/* ── LINE CHART (multi-season) ── */
+const seasons = {{ history_chart | tojson }};
+
+function buildLineChart(){
+  const c=chartColors();
+  const ctx=document.getElementById('lineChart');
+  if(!ctx)return;
+  if(lineChart)lineChart.destroy();
+  lineChart=new Chart(ctx,{
+    type:'line',
+    data:seasons,
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      animation:{duration:800,easing:'easeInOutQuart'},
+      interaction:{intersect:false,mode:'index'},
+      plugins:{
+        legend:{display:true,position:'bottom',labels:{boxWidth:10,boxHeight:10,padding:14,font:{size:11.5,family:'Plus Jakarta Sans'},color:c.muted,usePointStyle:true,pointStyleWidth:10}},
+        tooltip:{backgroundColor:'rgba(15,36,25,0.9)',titleColor:'#fff',bodyColor:'rgba(255,255,255,0.75)',padding:12,cornerRadius:10,boxPadding:4,callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.parsed.y+'%'}},
+      },
+      scales:{
+        x:{grid:{color:c.border,lineWidth:0.5},border:{dash:[3,3]},ticks:{color:c.muted,font:{size:11.5,family:'Plus Jakarta Sans'}}},
+        y:{min:40,max:100,grid:{color:c.border,lineWidth:0.5},border:{display:false,dash:[3,3]},ticks:{color:c.muted,font:{size:11.5},callback:v=>v+'%'}},
+      }
+    }
+  });
+}
+
+/* ── CROP TABLE ── */
+function buildCropTable(){
+  const crops = {{ score_cards | tojson }};
+  const tbody=document.getElementById('cropTableBody');
+  tbody.innerHTML='';
+  crops.forEach((c,i)=>{
+    const colors={high:'#22884F',mid:'#F59E0B',low:'#F43F5E'};
+    const tagLabels={high:'High',mid:'Medium',low:'Low'};
+    const emojis={'beans':'🫘','cassava':'🌿','irish_potato':'🍠','maize':'🌽','rice':'🍚'};
+    tbody.innerHTML+=`<tr>
+      <td><div class="crop-name"><span class="crop-emoji">${emojis[c.key] || '🌱'}</span>${c.label}</div></td>
+      <td>
+        <div class="crop-bar-wrap">
+          <div class="crop-bar-bg">
+            <div class="crop-bar-fill" style="width:0%;background:${c.color}" data-w="${c.score}%"></div>
+          </div>
+          <div class="crop-pct">${c.score}%</div>
+        </div>
+      </td>
+      <td><span class="suitability-tag tag-${c.tag}">${tagLabels[c.tag]}</span></td>
+    </tr>`;
+  });
+  // animate bars
+  setTimeout(()=>{
+    document.querySelectorAll('.crop-bar-fill').forEach(b=>{b.style.width=b.dataset.w});
+  },500);
+}
+
+/* ── INIT + THEME UPDATE ── */
+function updateCharts(){
+  setTimeout(()=>{
+    buildEnvChart(document.querySelector('.pill.active')?.dataset.period||'3m');
+    buildPieChart();
+    buildLineChart();
+  },50);
+}
+
+// Store period on pills
+document.querySelectorAll('.pill').forEach(p=>{
+  const m=p.textContent.trim().toLowerCase();
+  p.dataset.period=m==='3m'?'3m':m==='6m'?'6m':'1y';
+});
+
+window.addEventListener('load',()=>{
+  buildEnvChart('3m');
+  buildPieChart();
+  buildLineChart();
+  buildCropTable();
+});
+
+// Dark mode observer to redraw charts
+const obs=new MutationObserver(()=>updateCharts());
+obs.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+</script>
+</body>
+</html>

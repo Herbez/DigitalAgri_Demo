@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DigitalAgri — Planting Calendar</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Lora:wght@500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/planting_calendar.css') }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+{% include 'components/sidebar.html' %}
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+{% include 'components/navbar.html' %}
+
+  <!-- CONTENT -->
+  <div class="content">
+    
+    <!-- Page header -->
+    <div class="page-header">
+      <h1 class="page-title">Planting Calendar</h1>
+      <div class="page-sub">
+        Plan your planting schedule based on seasonal data and district-specific timing
+      </div>
+    </div>
+
+    <!-- Season Switcher -->
+    <div class="season-switcher-container">
+      <div class="season-header">
+        <div class="season-title">Season Timeline</div>
+        <div class="season-district">{{ user.district }} District</div>
+      </div>
+      <div class="season-tabs">
+        <button class="season-tab" data-season="A" onclick="switchSeason('A')">
+          <span class="season-label">Season A</span>
+          <span class="season-status active">Active</span>
+          <span class="season-dates">Mar - Jun</span>
+        </button>
+        <button class="season-tab" data-season="B" onclick="switchSeason('B')">
+          <span class="season-label">Season B</span>
+          <span class="season-status upcoming">Upcoming</span>
+          <span class="season-dates">Sep - Dec</span>
+        </button>
+        <button class="season-tab" data-season="C" onclick="switchSeason('C')">
+          <span class="season-label">Season C</span>
+          <span class="season-status closed">Closed</span>
+          <span class="season-dates">Jan - Feb</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Gantt Calendar -->
+    <div class="calendar-card">
+      <div class="calendar-header">
+        <div>
+          <div class="calendar-title">Crop Growth Timeline</div>
+          <div class="calendar-sub">Season A 2026 — {{ user.district }} District</div>
+        </div>
+        <div class="calendar-legend">
+          <div class="legend-item"><span class="legend-dot" style="background:var(--green-400)"></span>Prepare</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Plant</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--amber)"></span>Weeding</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--violet)"></span>Fertilise</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--rose)"></span>Pest Watch</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#10B981"></span>Harvest</div>
+        </div>
+      </div>
+      <div class="gantt-container" id="ganttChart">
+        <div class="gantt-header">
+          <div class="gantt-crop-col">Crop</div>
+          <div class="gantt-weeks">
+            <div class="gantt-week">W1</div>
+            <div class="gantt-week">W2</div>
+            <div class="gantt-week">W3</div>
+            <div class="gantt-week">W4</div>
+            <div class="gantt-week">W5</div>
+            <div class="gantt-week">W6</div>
+            <div class="gantt-week">W7</div>
+            <div class="gantt-week">W8</div>
+            <div class="gantt-week">W9</div>
+            <div class="gantt-week">W10</div>
+            <div class="gantt-week">W11</div>
+            <div class="gantt-week">W12</div>
+          </div>
+        </div>
+        <div class="gantt-body" id="ganttBody">
+          <!-- Dynamic content will be inserted here -->
+        </div>
+        <div class="today-marker" id="todayMarker" style="left: 15%">
+          <div class="today-line"></div>
+          <div class="today-label">Today</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rainfall Comparison Chart -->
+    <div class="rainfall-card">
+      <div class="rainfall-header">
+        <div>
+          <div class="rainfall-title">Rainfall Comparison</div>
+          <div class="rainfall-sub">Current season vs historical average</div>
+        </div>
+        <div class="rainfall-indicator" id="rainfallIndicator">
+          <span class="rainfall-value">+24mm</span>
+          <span class="rainfall-label">above historical average</span>
+        </div>
+      </div>
+      <div class="rainfall-warning" id="rainfallWarning" style="display:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1"/></svg>
+        <span>Late onset of rains detected — delay planting by 1 week</span>
+      </div>
+      <div class="rainfall-chart">
+        <canvas id="rainfallChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Neighbouring District Comparison -->
+    <div class="neighbour-comparison">
+      <div class="neighbour-header" onclick="toggleNeighbourComparison()">
+        <div>
+          <div class="neighbour-title">Neighbouring Districts</div>
+          <div class="neighbour-sub">Compare planting windows with nearby areas</div>
+        </div>
+        <svg class="neighbour-toggle" id="neighbourToggle" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="neighbour-content" id="neighbourContent">
+        <div class="neighbour-grid">
+          <div class="neighbour-item">
+            <div class="neighbour-district">Bugesera</div>
+            <div class="neighbour-window">Mar 18 - Mar 25</div>
+            <div class="neighbour-status">Same window</div>
+          </div>
+          <div class="neighbour-item">
+            <div class="neighbour-district">Musanze</div>
+            <div class="neighbour-window">Mar 22 - Mar 29</div>
+            <div class="neighbour-status late">4 days later</div>
+          </div>
+          <div class="neighbour-item">
+            <div class="neighbour-district">Rwamagana</div>
+            <div class="neighbour-window">Mar 15 - Mar 22</div>
+            <div class="neighbour-status early">3 days earlier</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+/* ── THEME ── */
+function toggleTheme(){
+  const h=document.documentElement;
+  const dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dark?'light':'dark');
+  document.getElementById('themeBtn').textContent=dark?'☀️':'🌙';
+  updateCharts();
+}
+
+/* ── SEASON SWITCHER ── */
+function switchSeason(season){
+  document.querySelectorAll('.season-tab').forEach(tab => {
+    tab.classList.remove('active');
+    if(tab.dataset.season === season){
+      tab.classList.add('active');
+    }
+  });
+  // Update calendar data based on season
+  updateGanttChart(season);
+  updateRainfallChart(season);
+}
+
+/* ── GANTT CHART ── */
+const cropData = {
+  'A': [
+    {name: 'Maize', prepare: 'W1-W2', plant: 'W3', weeding: 'W4-W6', fertilise: 'W7-W8', pest: 'W5-W9', harvest: 'W10-W12'},
+    {name: 'Beans', prepare: 'W1-W2', plant: 'W3', weeding: 'W4-W6', fertilise: 'W7-W8', pest: 'W4-W7', harvest: 'W9-W11'},
+    {name: 'Rice', prepare: 'W1-W2', plant: 'W3-W4', weeding: 'W5-W7', fertilise: 'W8-W9', pest: 'W6-W10', harvest: 'W11-W12'},
+    {name: 'Sorghum', prepare: 'W1-W2', plant: 'W3', weeding: 'W4-W6', fertilise: 'W7-W8', pest: 'W5-W9', harvest: 'W10-W12'},
+  ],
+  'B': [
+    {name: 'Maize', prepare: 'W1-W2', plant: 'W3', weeding: 'W4-W6', fertilise: 'W7-W8', pest: 'W5-W9', harvest: 'W10-W12'},
+    {name: 'Beans', prepare: 'W1-W2', plant: 'W3', weeding: 'W4-W6', fertilise: 'W7-W8', pest: 'W4-W7', harvest: 'W9-W11'},
+    {name: 'Rice', prepare: 'W1-W2', plant: 'W3-W4', weeding: 'W5-W7', fertilise: 'W8-W9', pest: 'W6-W10', harvest: 'W11-W12'},
+    {name: 'Sorghum', prepare: 'W1-W2', plant: 'W3', weeding: 'W4-W6', fertilise: 'W7-W8', pest: 'W5-W9', harvest: 'W10-W12'},
+  ],
+  'C': [
+    {name: 'Maize', prepare: 'W1-W2', plant: 'W3', weeding: 'W4-W6', fertilise: 'W7-W8', pest: 'W5-W9', harvest: 'W10-W12'},
+    {name: 'Beans', prepare: 'W1-W2', plant: 'W3', weeding: 'W4-W6', fertilise: 'W7-W8', pest: 'W4-W7', harvest: 'W9-W11'},
+    {name: 'Rice', prepare: 'W1-W2', plant: 'W3-W4', weeding: 'W5-W7', fertilise: 'W8-W9', pest: 'W6-W10', harvest: 'W11-W12'},
+    {name: 'Sorghum', prepare: 'W1-W2', plant: 'W3', weeding: 'W4-W6', fertilise: 'W7-W8', pest: 'W5-W9', harvest: 'W10-W12'},
+  ]
+};
+
+function updateGanttChart(season){
+  const body = document.getElementById('ganttBody');
+  const data = cropData[season];
+  
+  body.innerHTML = data.map(crop => `
+    <div class="gantt-row">
+      <div class="gantt-crop-name">${crop.name}</div>
+      <div class="gantt-bars">
+        ${renderBar(crop.prepare, 'var(--green-400)')}
+        ${renderBar(crop.plant, 'var(--blue)')}
+        ${renderBar(crop.weeding, 'var(--amber)')}
+        ${renderBar(crop.fertilise, 'var(--violet)')}
+        ${renderBar(crop.pest, 'var(--rose)')}
+        ${renderBar(crop.harvest, '#10B981')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderBar(range, color){
+  if(!range) return '';
+  const [start, end] = range.split('-').map(w => parseInt(w.replace('W', '')));
+  const left = ((start - 1) / 12) * 100;
+  const width = ((end - start + 1) / 12) * 100;
+  return `<div class="gantt-bar" style="left:${left}%;width:${width}%;background:${color}"></div>`;
+}
+
+/* ── RAINFALL CHART ── */
+let rainfallChart = null;
+
+function updateRainfallChart(season){
+  const ctx = document.getElementById('rainfallChart').getContext('2d');
+  
+  if(rainfallChart){
+    rainfallChart.destroy();
+  }
+  
+  const data = season === 'A' ? 
+    [45, 52, 68, 75, 82, 78, 65, 58, 48, 42, 38, 35] :
+    [38, 42, 48, 55, 62, 68, 75, 72, 65, 58, 52, 45];
+  
+  const historical = [40, 45, 50, 55, 60, 65, 70, 68, 62, 55, 50, 45];
+  
+  rainfallChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [
+        {
+          label: 'Current Season',
+          data: data,
+          borderColor: '#2BA563',
+          backgroundColor: 'rgba(43, 165, 99, 0.1)',
+          fill: true,
+          tension: 0.4
+        },
+        {
+          label: 'Historical Average',
+          data: historical,
+          borderColor: '#8BA898',
+          borderDash: [5, 5],
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            usePointStyle: true,
+            padding: 20
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Rainfall (mm)'
+          }
+        }
+      }
+    }
+  });
+  
+  // Update indicator
+  const currentSum = data.slice(0, 3).reduce((a, b) => a + b, 0);
+  const historicalSum = historical.slice(0, 3).reduce((a, b) => a + b, 0);
+  const diff = currentSum - historicalSum;
+  const indicator = document.getElementById('rainfallIndicator');
+  const warning = document.getElementById('rainfallWarning');
+  
+  if(diff > 0){
+    indicator.innerHTML = `<span class="rainfall-value positive">+${diff}mm</span><span class="rainfall-label">above historical average</span>`;
+  } else {
+    indicator.innerHTML = `<span class="rainfall-value negative">${diff}mm</span><span class="rainfall-label">below historical average</span>`;
+  }
+  
+  // Show warning for anomaly
+  if(Math.abs(diff) > 20){
+    warning.style.display = 'flex';
+  } else {
+    warning.style.display = 'none';
+  }
+}
+
+/* ── NEIGHBOUR COMPARISON ── */
+function toggleNeighbourComparison(){
+  const content = document.getElementById('neighbourContent');
+  const toggle = document.getElementById('neighbourToggle');
+  content.classList.toggle('collapsed');
+  toggle.style.transform = content.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0deg)';
+}
+
+/* ── INITIALIZATION ── */
+document.addEventListener('DOMContentLoaded', () => {
+  // Set initial active season
+  document.querySelector('.season-tab[data-season="A"]').classList.add('active');
+  
+  // Initialize charts
+  updateGanttChart('A');
+  updateRainfallChart('A');
+});
+
+/* ── THEME UPDATE ── */
+function updateCharts(){
+  if(rainfallChart){
+    rainfallChart.update();
+  }
+}
+</script>
+</body>
+</html>

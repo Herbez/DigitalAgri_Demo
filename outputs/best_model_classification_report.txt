@@ -1,0 +1,11 @@
+              precision    recall  f1-score   support
+
+       beans       0.12      0.12      0.12       610
+     cassava       0.28      0.39      0.32      1406
+irish_potato       0.30      0.36      0.33      1617
+       maize       0.14      0.06      0.08       773
+        rice       0.19      0.08      0.12       909
+
+    accuracy                           0.25      5315
+   macro avg       0.20      0.20      0.19      5315
+weighted avg       0.23      0.25      0.23      5315

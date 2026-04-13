@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>DigitalAgri — {% if mode == 'signup' %}Sign Up{% else %}Sign In{% endif %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Lora:wght@500;600&display=swap" rel="stylesheet"/>
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        
+        :root{
+            --green-900:#0D3320;
+            --green-800:#14472D;
+            --green-700:#1A5C3A;
+            --green-600:#1E7045;
+            --green-500:#22884F;
+            --green-400:#2BA563;
+            --green-300:#4FBF80;
+            --green-200:#A8DFBF;
+            --green-100:#D4EFE0;
+            --green-50:#EEF8F3;
+            
+            --bg:#F2F6F3;
+            --surface:#ffffff;
+            --border:#E4EBE7;
+            --text-primary:#0F2419;
+            --text-secondary:#4A6355;
+            --text-muted:#8BA898;
+            
+            --shadow:0 4px 12px rgba(15,36,25,0.08), 0 2px 4px rgba(15,36,25,0.04);
+            --shadow-lg:0 20px 48px rgba(15,36,25,0.12), 0 8px 16px rgba(15,36,25,0.06);
+            
+            --radius:12px;
+            --radius-lg:16px;
+            --font:'Plus Jakarta Sans',sans-serif;
+            --font-display:'Lora',Georgia,serif;
+            --transition:0.22s cubic-bezier(0.4,0,0.2,1);
+        }
+        
+        html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text-primary)}
+        
+        .auth-container{
+            display:flex;min-height:100vh;align-items:center;justify-content:center;
+            padding:20px;
+        }
+        
+        .auth-card{
+            background:var(--surface);border-radius:var(--radius-lg);
+            box-shadow:var(--shadow-lg);width:100%;max-width:440px;
+            overflow:hidden;
+        }
+        
+        .auth-header{
+            background:linear-gradient(135deg,var(--green-700) 0%,var(--green-900) 100%);
+            padding:32px 32px 28px;text-align:center;color:#fff;
+            position:relative;overflow:hidden;
+        }
+        
+        .auth-header::before{
+            content:'';position:absolute;top:-50px;right:-50px;
+            width:150px;height:150px;background:radial-gradient(circle,rgba(75,191,128,0.15) 0%,transparent 70%);
+        }
+        
+        .logo-mark{
+            width:48px;height:48px;background:rgba(255,255,255,0.15);
+            border-radius:12px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;
+        }
+        
+        .logo-mark svg{width:24px;height:24px}
+        
+        .auth-title{
+            font-family:var(--font-display);font-size:24px;font-weight:600;margin-bottom:6px;
+        }
+        
+        .auth-subtitle{
+            font-size:14px;opacity:0.85;
+        }
+        
+        .auth-body{padding:32px}
+        
+        .form-group{margin-bottom:20px}
+        
+        .form-label{
+            display:block;font-size:13px;font-weight:600;color:var(--text-secondary);
+            margin-bottom:8px;
+        }
+        
+        .form-input{
+            width:100%;padding:12px 16px;border:1.5px solid var(--border);
+            border-radius:10px;font-size:14px;font-family:var(--font);
+            transition:border-color var(--transition),box-shadow var(--transition);
+            background:var(--surface);color:var(--text-primary);
+        }
+        
+        .form-input:focus{
+            outline:none;border-color:var(--green-400);
+            box-shadow:0 0 0 3px rgba(34,136,79,0.1);
+        }
+        
+        .form-select{
+            width:100%;padding:12px 16px;border:1.5px solid var(--border);
+            border-radius:10px;font-size:14px;font-family:var(--font);
+            transition:border-color var(--transition),box-shadow var(--transition);
+            background:var(--surface);color:var(--text-primary);
+            cursor:pointer;
+        }
+        
+        .form-select:focus{
+            outline:none;border-color:var(--green-400);
+            box-shadow:0 0 0 3px rgba(34,136,79,0.1);
+        }
+        
+        .btn-primary{
+            width:100%;padding:14px;border:none;border-radius:10px;
+            background:linear-gradient(135deg,var(--green-500) 0%,var(--green-600) 100%);
+            color:#fff;font-size:15px;font-weight:600;font-family:var(--font);
+            cursor:pointer;transition:all var(--transition);
+            box-shadow:0 4px 12px rgba(34,136,79,0.3);
+        }
+        
+        .btn-primary:hover{
+            transform:translateY(-2px);box-shadow:0 6px 20px rgba(34,136,79,0.4);
+        }
+        
+        .btn-primary:active{transform:translateY(0)}
+        
+        .auth-divider{
+            display:flex;align-items:center;margin:24px 0;
+            color:var(--text-muted);font-size:12px;
+        }
+        
+        .auth-divider::before,
+        .auth-divider::after{
+            content:'';flex:1;height:1px;background:var(--border);
+        }
+        
+        .auth-divider span{padding:0 16px}
+        
+        .auth-link{
+            text-align:center;font-size:14px;color:var(--text-secondary);
+        }
+        
+        .auth-link a{
+            color:var(--green-500);text-decoration:none;font-weight:600;
+            transition:color var(--transition);
+        }
+        
+        .auth-link a:hover{color:var(--green-600)}
+        
+        .alert{
+            padding:12px 16px;border-radius:10px;margin-bottom:20px;
+            font-size:14px;display:flex;align-items:center;gap:10px;
+        }
+        
+        .alert-success{
+            background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;
+        }
+        
+        .alert-warning{
+            background:#FFFBEB;color:#D97706;border:1px solid #FDE68A;
+        }
+        
+        .alert-info{
+            background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE;
+        }
+        
+        @media(max-width:480px){
+            .auth-card{border-radius:0;min-height:100vh}
+            .auth-body{padding:24px}
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo-mark">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round">
+                        <circle cx="10" cy="10" r="3.5"/>
+                        <line x1="10" y1="2" x2="10" y2="5.5"/>
+                        <line x1="10" y1="14.5" x2="10" y2="18"/>
+                        <line x1="2" y1="10" x2="5.5" y2="10"/>
+                        <line x1="14.5" y1="10" x2="18" y2="10"/>
+                        <line x1="4.2" y1="4.2" x2="6.5" y2="6.5"/>
+                        <line x1="13.5" y1="13.5" x2="15.8" y2="15.8"/>
+                        <line x1="15.8" y1="4.2" x2="13.5" y2="6.5"/>
+                        <line x1="6.5" y1="13.5" x2="4.2" y2="15.8"/>
+                    </svg>
+                </div>
+                <h1 class="auth-title">{% if mode == 'signup' %}Create Account{% else %}Welcome Back{% endif %}</h1>
+                <p class="auth-subtitle">{% if mode == 'signup' %}Join DigitalAgri to optimize your farming decisions{% else %}Sign in to access your farm dashboard{% endif %}</p>
+            </div>
+            
+            <div class="auth-body">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="post" action="{% if mode == 'signup' %}{{ url_for('signup') }}{% else %}{{ url_for('signin') }}{% endif %}">
+                    {% if mode == 'signup' %}
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="full_name" class="form-input" placeholder="John Niyonzima" required>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="email" class="form-input" placeholder="you@example.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-input" placeholder="••••••••" required minlength="6">
+                    </div>
+                    
+                    {% if mode == 'signup' %}
+                        <div class="form-group">
+                            <label class="form-label">District</label>
+                            <select name="district" class="form-select" required>
+                                <option value="">Select your district</option>
+                                {% for district in districts %}
+                                    <option value="{{ district }}">{{ district }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Farm Size (hectares) - Optional</label>
+                            <input type="number" name="farm_size_ha" class="form-input" placeholder="e.g., 2.5" step="0.1" min="0">
+                        </div>
+                    {% endif %}
+                    
+                    <button type="submit" class="btn-primary">
+                        {% if mode == 'signup' %}Create Account{% else %}Sign In{% endif %}
+                    </button>
+                </form>
+                
+                <div class="auth-divider">
+                    <span>or</span>
+                </div>
+                
+                <div class="auth-link">
+                    {% if mode == 'signup' %}
+                        Already have an account? <a href="{{ url_for('signin') }}">Sign in</a>
+                    {% else %}
+                        Don't have an account? <a href="{{ url_for('signup') }}">Sign up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
