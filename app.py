@@ -102,6 +102,19 @@ def login_required(view):
         if current_user() is None:
             flash("Please sign in to continue.", "warning")
             return redirect(url_for("signin"))
+        
+        # Check session timeout (5 minutes = 300 seconds)
+        last_activity = session.get('last_activity')
+        if last_activity:
+            elapsed = (datetime.now() - datetime.fromisoformat(last_activity)).total_seconds()
+            if elapsed > 300:
+                session.clear()
+                flash("Your session has expired. Please sign in again.", "warning")
+                return redirect(url_for("signin"))
+        
+        # Update last activity time
+        session['last_activity'] = datetime.now().isoformat()
+        
         return view(*args, **kwargs)
 
     return wrapped_view
@@ -518,7 +531,7 @@ def logout():
     return redirect(url_for("signin"))
 
 
-@app.route("/dashboard")
+@app.route("/user/dashboard")
 @login_required
 def dashboard():
     user = current_user()
@@ -538,7 +551,7 @@ def dashboard():
     )
 
 
-@app.route("/planting-calendar")
+@app.route("/user/planting-calendar")
 @login_required
 def planting_calendar():
     user = current_user()
@@ -556,7 +569,7 @@ def planting_calendar():
     )
 
 
-@app.post("/recommend")
+@app.post("/user/recommend")
 @login_required
 def recommend():
     user = current_user()

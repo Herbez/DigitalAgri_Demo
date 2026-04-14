@@ -164,9 +164,19 @@
             background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE;
         }
         
+        @media(max-width:768px){
+            .auth-card{max-width:100%;margin:16px}
+            .auth-header{padding:28px 24px 24px}
+            .auth-body{padding:28px 24px}
+        }
+        
         @media(max-width:480px){
-            .auth-card{border-radius:0;min-height:100vh}
-            .auth-body{padding:24px}
+            .auth-card{border-radius:0;min-height:100vh;margin:0}
+            .auth-header{padding:24px 20px 20px}
+            .auth-body{padding:24px 20px}
+            .auth-title{font-size:22px}
+            .auth-subtitle{font-size:13px}
+            .form-input{padding:12px 14px}
         }
     </style>
 </head>
